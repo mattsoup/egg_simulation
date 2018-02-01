@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-
+""" This is a simple simulation of symbiont transmission to cicada eggs """
 
 import numpy
 import sys
@@ -8,7 +8,9 @@ import multiprocessing as mp
 
 
 if len(sys.argv) != 6:
-    print "Usage: ./mp_egg_model.py <number of Hodg. lineages> <Number of Hodg. cells passed to eggs> <Number of eggs laid> <# of processes> <outfile prefix>\n"
+    print "Usage: ./mp_egg_model.py <number of Hodg. lineages> \
+          <Number of Hodg. cells passed to eggs> <Number of eggs laid> \
+          <# of processes> <outfile prefix>\n"
     quit()
 
 num_hodg = int(sys.argv[1])
@@ -51,7 +53,12 @@ covg = sorted(covg)
 print covg
 unique = numpy.unique
 
+
 def min_1(num_hodg, num_cells, num_eggs_laid, covg, temp_output):
+    """ A function to calculate the proportion of eggs that receive all
+    Hodgkinia lineages.
+    """
+
     viable = 0
     viable_list = []
     for x in xrange(0, num_eggs_laid):
@@ -67,7 +74,12 @@ def min_1(num_hodg, num_cells, num_eggs_laid, covg, temp_output):
     print "Hodg: %s Cells: %s Percent viable: %s" % (num_hodg, num_cells, float(viable) / num_eggs_laid)
     return viable_list
 
+
 def diff_min(num_hodg, num_cells, num_eggs_laid, covg, temp_output):
+    """ This function is similar to 'min_1', except it allows for a minimum number
+    of Hodgkinia cells (variable 'min') transmitted to all eggs
+    """
+
     min = 100
     viable = 0
     viable_list = []
@@ -84,25 +96,38 @@ def diff_min(num_hodg, num_cells, num_eggs_laid, covg, temp_output):
     print "Hodg: %s Cells: %s Percent viable: %s" % (num_hodg, num_cells, float(viable) / num_eggs_laid)
     return viable_list
 
+
 percents = []
+
+
 def test_num_hodg(*list_of_indices):
+    """ This function takes the list of indices that each process is responsible
+    for. It calculates the portion of the coverage list needed, and for each
+    number of Hodgkinia cells runs 'diff_min' or 'min_1' (hard coded)
+    """
+
     print list_of_indices
     for index in list_of_indices:
         slice_covg = covg[:(index + 1)]
         new_sum = sum(slice_covg)
         slice_covg = [(float(item) / new_sum) for item in slice_covg]
         for y in xrange(1, (num_cells + 1), 20):
-            viable_list = diff_min((index + 1), y, num_eggs_laid, slice_covg, temp_output)
+            viable_list = diff_min((index + 1), y, num_eggs_laid, slice_covg,
+                                   temp_output)
             percents.append(viable_list)
             if viable_list[2] == 1.0:
-                print "skipping %s, cells %s - %s" % ((index + 1), y + 20, (num_cells + 1))
+                print "skipping %s, cells %s - %s" % ((index + 1), y + 20,
+                                                      (num_cells + 1))
                 for z in xrange(y + 20, (num_cells + 1), 20):
                     percents.append([(index + 1), z, 1.0])
                 break
         temp_output.put(percents)
         to_write(temp_output)
 
+
 def to_write(temp_output):
+    """A simple function to write the results in real time"""
+
     covgs = []
     covgs.append(temp_output.get())
     for item in covgs:
@@ -110,6 +135,7 @@ def to_write(temp_output):
             temp_out.write("%s %s %s\n" % (thing[0], thing[1], thing[2]))
     temp_out.flush()
     covgs = []
+
 
 processes = []
 prev_end = 0
@@ -140,14 +166,7 @@ for p in processes:
         pass
         print "checking %s" % p
         time.sleep(5)
-#     print "P HAS BECOME FALSE %s\n" % p
-#     covgs.append(temp_output.get(p))
     p.join()
-
-# for item in covgs:
-#     for thing in item:
-#         out.write("%s %s %s\n" % (thing[0], thing[1], thing[2]))
-#
 
 temp_out.close()
 out_set = set()
