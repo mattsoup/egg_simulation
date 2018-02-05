@@ -77,10 +77,10 @@ def min_1(num_hodg, num_cells, num_eggs_laid, covg, temp_output):
 
 def diff_min(num_hodg, num_cells, num_eggs_laid, covg, temp_output):
     """ This function is similar to 'min_1', except it allows for a minimum number
-    of Hodgkinia cells (variable 'min') transmitted to all eggs
+    of Hodgkinia cells (variable 'min_cells') transmitted to all eggs
     """
 
-    min = 100
+    min_cells = 100
     viable = 0
     viable_list = []
     for x in xrange(0, num_eggs_laid):
@@ -88,7 +88,7 @@ def diff_min(num_hodg, num_cells, num_eggs_laid, covg, temp_output):
         uniq, counts = unique(genome, return_counts = True)
         uniq = uniq.tolist()
         counts = counts.tolist()
-        if len(uniq) == num_hodg and all(x >= min for x in counts):
+        if len(uniq) == num_hodg and all(x >= min_cells for x in counts):
             viable += 1
     viable_list.append(num_hodg)
     viable_list.append(num_cells)
